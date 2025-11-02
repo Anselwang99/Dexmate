@@ -27,7 +27,7 @@ This guide will help you deploy the Dexmate robot management system to Railway.
     - Go to "Variables" tab and add:
         ```
         JWT_SECRET=<generate-a-random-secret-key>
-        DATABASE_URL=file:./dev.db
+        DATABASE_URL=file:./data/dev.db
         PORT=3001
         NODE_ENV=production
         ```
@@ -96,7 +96,7 @@ railway up
 
 # Set environment variables
 railway variables set JWT_SECRET=<your-secret>
-railway variables set DATABASE_URL=file:./dev.db
+railway variables set DATABASE_URL=file:./data/dev.db
 ```
 
 ## Environment Variables Reference
@@ -106,7 +106,7 @@ railway variables set DATABASE_URL=file:./dev.db
 | Variable       | Description               | Example                                      |
 | -------------- | ------------------------- | -------------------------------------------- |
 | `JWT_SECRET`   | Secret key for JWT tokens | `your-super-secret-key-change-in-production` |
-| `DATABASE_URL` | SQLite database path      | `file:./dev.db`                              |
+| `DATABASE_URL` | SQLite database path      | `file:./data/dev.db`                         |
 | `PORT`         | Server port               | `3001`                                       |
 | `NODE_ENV`     | Environment               | `production`                                 |
 
@@ -121,7 +121,7 @@ railway variables set DATABASE_URL=file:./dev.db
 1. **Verify Volume is Mounted**
 
     - Go to backend service → "Volumes"
-    - Ensure volume is mounted at `/app`
+    - Ensure volume is mounted at `/app/data` (NOT `/app` - that will overwrite your application code)
     - If not, add volume and redeploy
 
 2. **Run Database Migrations**
@@ -172,22 +172,24 @@ railway variables set DATABASE_URL=file:./dev.db
 ### Database resets on deployment
 
 -   **Problem**: SQLite database loses data after redeployment
--   **Solution**: Add a Volume to backend service mounted at `/app`
+-   **Solution**: Add a Volume to backend service mounted at `/app/data`
 -   **Steps**:
     1. Go to backend service → "Volumes"
     2. Click "New Volume"
-    3. Mount path: `/app`
-    4. Redeploy the service
+    3. Mount path: `/app/data` (IMPORTANT: NOT `/app` - that will overwrite your application code)
+    4. Update `DATABASE_URL` environment variable to `file:./data/dev.db`
+    5. Redeploy the service
 -   This persists the SQLite database between deployments
 
 ### Demo data not showing after seed
 
 -   **Problem**: Ran `railway run npm run seed` but robots/groups don't appear
 -   **Solution**:
-    1. Ensure volume is mounted at `/app` (see above)
-    2. Redeploy the backend service
-    3. Check logs for "🎉 Initial seed completed!" message
-    4. If seed ran but data still missing, check you're logged in as demo accounts:
+    1. Ensure volume is mounted at `/app/data` (see above)
+    2. Ensure `DATABASE_URL` is set to `file:./data/dev.db`
+    3. Redeploy the backend service
+    4. Check logs for "🎉 Initial seed completed!" message
+    5. If seed ran but data still missing, check you're logged in as demo accounts:
         - `admin@demo.com` / `admin123`
         - `user@demo.com` / `user123`
     5. If logged in as different account, those accounts won't see seeded data
