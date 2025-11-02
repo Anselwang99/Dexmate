@@ -28,4 +28,8 @@ RUN mkdir -p /app/data
 EXPOSE 3001
 
 # Run migrations and start
-CMD npx prisma migrate deploy && npm start
+CMD echo "Starting deployment..." && \
+    echo "Running Prisma migrations..." && \
+    npx prisma migrate deploy && \
+    echo "Migrations complete, starting server..." && \
+    npm start
