@@ -320,3 +320,45 @@ export const updateMemberRole = async (req, res) => {
         res.status(500).json({ error: "Failed to update member role" });
     }
 };
+
+export const deleteGroup = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // Check if current user is admin of the group
+        const membership = await prisma.groupMember.findUnique({
+            where: {
+                userId_groupId: {
+                    userId: req.user.id,
+                    groupId: id,
+                },
+            },
+        });
+
+        if (!membership || membership.role !== "ADMIN") {
+            return res
+                .status(403)
+                .json({ error: "Only group admins can delete the group" });
+        }
+
+        // Delete all robots owned by this group
+        // This will cascade delete robot permissions and settings
+        await prisma.robot.deleteMany({
+            where: {
+                ownerType: "GROUP",
+                ownerId: id,
+            },
+        });
+
+        // Delete the group
+        // This will cascade delete all group members
+        await prisma.group.delete({
+            where: { id },
+        });
+
+        res.json({ message: "Group deleted successfully" });
+    } catch (error) {
+        console.error("Delete group error:", error);
+        res.status(500).json({ error: "Failed to delete group" });
+    }
+};
