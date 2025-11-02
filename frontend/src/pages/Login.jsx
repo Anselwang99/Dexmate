@@ -16,9 +16,11 @@ export default function Login() {
         setLoading(true);
 
         try {
-            await login(email, password);
+            const result = await login(email, password);
+            console.log("Login successful, user:", result);
             navigate("/dashboard");
         } catch (err) {
+            console.error("Login error:", err);
             setError(err.response?.data?.error || "Failed to login");
         } finally {
             setLoading(false);
