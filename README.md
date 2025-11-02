@@ -2,6 +2,10 @@
 
 A full-stack web application for managing robots with user authentication, group management, and permission-based access control.
 
+## 🔗 Demo Link
+
+-   https://dexmate-demo.up.railway.app/login
+
 ## 🚀 Features
 
 ### Flow 1: Personal Robot Management
@@ -32,9 +36,11 @@ A full-stack web application for managing robots with user authentication, group
 -   🐳 **Docker support** with docker-compose orchestration
 -   ✅ **Unit tests** with 34 passing tests across all critical endpoints
 -   💬 **Error handling** with user-friendly messages and loading states
--   🎨 **Modern UI** with Tailwind CSS and responsive design
--   🔄 **Cross-tab authentication** sync with localStorage events
+-   🎨 **Modern UI** with Tailwind CSS and fully responsive mobile design
+-   📱 **Mobile-friendly** with hamburger menu and optimized layouts
 -   🔐 **Secure** password hashing and JWT authentication
+-   🗑️ **Group deletion** - Admins can delete groups with cascade cleanup
+-   🧪 **Comprehensive test coverage** - 34 tests across authentication, robots, groups, and permissions
 
 ## 🛠️ Tech Stack
 
@@ -129,13 +135,101 @@ npm test                 # Run all tests
 npm run test:watch       # Watch mode
 ```
 
-**Test Coverage:**
+**Test Coverage: 34 Passing Tests**
 
--   ✅ 34 tests passing
--   ✅ Authentication (register, login, validation)
--   ✅ Robot management (CRUD, permissions)
--   ✅ Group management (create, members, roles)
--   ✅ Permission system (grant, revoke, update)
+### Authentication Tests (9 tests)
+
+**Registration (`POST /api/auth/register`)**
+
+-   ✅ Successfully register new user with valid data
+-   ✅ Return JWT token and user object (excluding password)
+-   ✅ Reject registration with missing fields
+-   ✅ Reject duplicate email addresses
+-   ✅ Validate email format
+
+**Login (`POST /api/auth/login`)**
+
+-   ✅ Successfully login with correct credentials
+-   ✅ Return JWT token and user object
+-   ✅ Reject incorrect password
+-   ✅ Reject non-existent email
+-   ✅ Reject login with missing fields
+
+### Robot Management Tests (11 tests)
+
+**Create Robot (`POST /api/robots`)**
+
+-   ✅ Create robot with valid data (name, serialNumber, model, ownerType)
+-   ✅ Verify robot is owned by authenticated user
+-   ✅ Reject creation without authentication
+-   ✅ Reject creation with missing required fields
+-   ✅ Reject duplicate serial numbers
+
+**List Robots (`GET /api/robots`)**
+
+-   ✅ Retrieve all robots owned by or accessible to user
+-   ✅ Reject requests without authentication
+
+**Get Robot Details (`GET /api/robots/:serialNumber`)**
+
+-   ✅ Retrieve specific robot by serial number
+-   ✅ Return 404 for non-existent robots
+-   ✅ Reject requests without authentication
+
+**Delete Robot (`DELETE /api/robots/:serialNumber`)**
+
+-   ✅ Successfully delete owned robot
+-   ✅ Verify robot is removed from database
+-   ✅ Return 404 for non-existent robots
+
+### Group Management Tests (8 tests)
+
+**Create Group (`POST /api/groups`)**
+
+-   ✅ Create group with name and description
+-   ✅ Creator automatically becomes admin
+-   ✅ Reject creation without authentication
+-   ✅ Reject creation with missing name
+
+**List Groups (`GET /api/groups`)**
+
+-   ✅ Retrieve all groups user is a member of
+-   ✅ Reject requests without authentication
+
+**Add Member (`POST /api/groups/:id/members`)**
+
+-   ✅ Admin can add members with specified role
+-   ✅ Reject member addition by non-admin users
+-   ✅ Reject duplicate member additions
+
+**Remove Member (`DELETE /api/groups/:id/members/:userId`)**
+
+-   ✅ Admin can remove members from group
+-   ✅ Permissions are automatically cleaned up on removal
+-   ✅ Reject member removal by non-admin users
+
+### Permission Management Tests (6 tests)
+
+**Grant Permission (`POST /api/robots/:serialNumber/permissions`)**
+
+-   ✅ Owner can grant USAGE permission to users
+-   ✅ Owner can grant ADMIN permission to users
+-   ✅ Update permission level if already exists (upsert)
+-   ✅ Reject permission grant by non-owners
+
+**Revoke Permission (`DELETE /api/robots/:serialNumber/permissions/:userId`)**
+
+-   ✅ Owner can revoke user permissions
+-   ✅ Admin users can revoke their own permissions
+-   ✅ Verify permission removal from database
+
+### Test Infrastructure
+
+-   **Framework**: Jest + Supertest
+-   **Coverage**: All critical API endpoints
+-   **Database**: Isolated test data with cleanup
+-   **Authentication**: JWT token testing
+-   **Error Handling**: Validation and authorization checks
 
 ## 📁 Project Structure
 
@@ -198,16 +292,34 @@ VITE_API_URL=https://your-backend-url.railway.app
 
 ## 🎮 Demo Accounts
 
-After deployment, register with:
+The deployed application includes seed data for testing:
 
--   Email: demo@example.com
--   Password: demo123
+**Admin Account:**
 
-Or seed database:
+-   Email: `admin@demo.com`
+-   Password: `admin123`
+-   Role: Group Admin (can manage group members, assign robots, grant permissions)
+
+**Regular User Account:**
+
+-   Email: `user@demo.com`
+-   Password: `user123`
+-   Role: Group Member (can access assigned robots and save settings)
+
+**To seed the database locally:**
 
 ```bash
+cd backend
 npm run seed
 ```
+
+**Note:** On Railway deployment, you can either:
+
+1. Register a new account directly on the deployed app
+2. Seed the database using Railway CLI:
+    ```bash
+    railway run npm run seed
+    ```
 
 ## 🔑 Key API Endpoints
 
@@ -232,6 +344,8 @@ npm run seed
 -   `POST /api/groups` - Create group
 -   `POST /api/groups/:id/members` - Add member
 -   `DELETE /api/groups/:id/members/:userId` - Remove member
+-   `PATCH /api/groups/:id/members/:userId/role` - Update member role
+-   `DELETE /api/groups/:id` - Delete group (admin only)
 
 ### Settings
 
@@ -239,6 +353,122 @@ npm run seed
 -   `PUT /api/settings/:serialNumber` - Update settings
 
 ## 🏗️ Architecture Decisions
+
+### Technology Choices
+
+#### Frontend Stack
+
+-   **React 18**: Modern UI library with hooks for state management and excellent ecosystem
+-   **Vite**: Lightning-fast build tool with hot module replacement (HMR) for better developer experience
+-   **Tailwind CSS**: Utility-first CSS framework for rapid UI development and consistent design
+-   **React Router v6**: Declarative routing with improved API and better bundle size
+-   **Axios**: Promise-based HTTP client with interceptors for token management
+
+**Why?** React with Vite provides the best developer experience with instant feedback during development. Tailwind CSS eliminates the need for custom CSS files and ensures consistent styling across the application.
+
+#### Backend Stack
+
+-   **Node.js + Express 5**: Lightweight, fast, and excellent for RESTful APIs
+-   **Prisma ORM 6.18**: Type-safe database client with excellent TypeScript support and migrations
+-   **SQLite**: Zero-configuration database perfect for development and demos
+-   **JWT**: Stateless authentication that scales well
+-   **bcryptjs**: Industry-standard password hashing
+
+**Why?** Express provides simplicity and flexibility. Prisma offers type safety and makes database operations straightforward. SQLite requires no setup and is perfect for this scale, but the schema can easily migrate to PostgreSQL for production.
+
+### Design Decisions & Trade-offs
+
+#### 1. **SQLite vs PostgreSQL**
+
+**Decision:** Use SQLite for development/demo, design schema for easy PostgreSQL migration
+
+**Trade-offs:**
+
+-   ✅ **Pros**: Zero configuration, portable (single file), perfect for demos
+-   ❌ **Cons**: Limited concurrent writes, no advanced features
+-   **Migration Path**: Prisma schema works with PostgreSQL with minimal changes
+
+#### 2. **Monorepo vs Separate Repositories**
+
+**Decision:** Keep frontend and backend in the same repository
+
+**Trade-offs:**
+
+-   ✅ **Pros**: Single source of truth, easier dependency management, simpler deployment
+-   ❌ **Cons**: Larger repository size, shared dependencies
+-   **Rationale**: For a tightly-coupled application like this, the benefits of keeping everything together outweigh the drawbacks
+
+#### 3. **Explicit Permission Model**
+
+**Decision:** No automatic permissions - all access must be explicitly granted
+
+**Trade-offs:**
+
+-   ✅ **Pros**: More secure, clear audit trail, prevents accidental data exposure
+-   ❌ **Cons**: More setup required, group admins must explicitly assign robots
+-   **Rationale**: Security-first approach. While it requires more initial setup, it prevents scenarios where adding a user to a group automatically grants access to sensitive robots
+
+#### 4. **SessionStorage vs LocalStorage**
+
+**Decision:** Use sessionStorage for authentication tokens
+
+**Trade-offs:**
+
+-   ✅ **Pros**: Better security (tokens cleared on tab close), allows multiple accounts in different tabs
+-   ❌ **Cons**: Users must re-login after closing browser
+-   **Rationale**: Security and multi-account testing outweigh the convenience of persistent sessions
+
+#### 5. **JWT vs Session-based Auth**
+
+**Decision:** Use JWT tokens
+
+**Trade-offs:**
+
+-   ✅ **Pros**: Stateless, scales horizontally, works across domains
+-   ❌ **Cons**: Can't invalidate tokens server-side without additional infrastructure
+-   **Rationale**: Simpler architecture, better for microservices if we scale, no session store needed
+
+#### 6. **Docker + nginx for Frontend**
+
+**Decision:** Use multi-stage Docker builds with nginx for production
+
+**Trade-offs:**
+
+-   ✅ **Pros**: Consistent deployments, optimized production builds, fast serving
+-   ❌ **Cons**: More complex than serving directly from Node
+-   **Rationale**: nginx is production-grade and handles static files better than Node.js
+
+#### 7. **Mobile-First Responsive Design**
+
+**Decision:** Implement hamburger menu and responsive layouts
+
+**Trade-offs:**
+
+-   ✅ **Pros**: Works on all devices, better UX, modern design patterns
+-   ❌ **Cons**: More CSS complexity
+-   **Rationale**: Modern web apps must be mobile-friendly; this is a requirement, not optional
+
+### Key Features & Implementation Choices
+
+#### Permission System
+
+-   **Choice**: Two-tier permission model (USAGE vs ADMIN)
+-   **Rationale**: Balances simplicity with flexibility. USAGE allows basic access, ADMIN allows permission management
+
+#### Group Ownership
+
+-   **Choice**: Robots can be owned by either User or Group (not both)
+-   **Rationale**: Simplifies ownership logic and prevents ambiguous scenarios
+
+#### Settings Storage
+
+-   **Choice**: JSON field in database for user settings
+-   **Rationale**: Flexible schema without needing migrations for new settings. Easy to add features without database changes
+
+#### Serial Number Generation
+
+-   **Choice**: Client-side UUID generation with timestamp
+-   **Rationale**: Ensures uniqueness and provides user-friendly format (SN-timestamp-random)
 
 ### Why SQLite?
 
@@ -261,28 +491,8 @@ npm run seed
 -   Flexible permission model
 -   Prevents accidental data exposure
 
-## 🤝 Contributing
-
-This is a portfolio project, but suggestions are welcome!
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Open Pull Request
-
-## 📝 License
-
-This project is open source and available under the MIT License.
-
 ## 👨‍💻 Author
 
 **Ansel Wang**
 
 -   GitHub: [@Anselwang99](https://github.com/Anselwang99)
-
-## 🙏 Acknowledgments
-
--   Built as part of a full-stack engineering assessment
--   Implements all required flows plus bonus features
--   Production-ready with Docker, tests, and deployment guides
