@@ -5,6 +5,18 @@ import { hashPassword } from "./utils/auth.js";
 // Check if database is empty and seed if needed
 async function checkAndSeed() {
     try {
+        // Force reset if RESET_DB environment variable is set
+        if (process.env.RESET_DB === "true") {
+            console.log("🔄 RESET_DB=true detected, clearing database...");
+            await prisma.robotSetting.deleteMany();
+            await prisma.robotPermission.deleteMany();
+            await prisma.robot.deleteMany();
+            await prisma.groupMember.deleteMany();
+            await prisma.group.deleteMany();
+            await prisma.user.deleteMany();
+            console.log("✅ Database cleared");
+        }
+
         const userCount = await prisma.user.count();
 
         if (userCount === 0) {
