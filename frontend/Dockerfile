@@ -24,7 +24,11 @@ COPY --from=builder /app/dist /usr/share/nginx/html
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expose port
+# Copy startup script
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+# Expose port (Railway will set PORT env var)
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/start.sh"]
