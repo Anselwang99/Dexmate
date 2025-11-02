@@ -18,6 +18,9 @@ RUN npx prisma generate
 # Copy application code
 COPY . .
 
+# Make start script executable
+RUN chmod +x start.sh
+
 # Remove dev dependencies
 RUN npm prune --production
 
@@ -27,9 +30,5 @@ RUN mkdir -p /app/data
 # Expose port
 EXPOSE 3001
 
-# Run migrations and start
-CMD echo "Starting deployment..." && \
-    echo "Running Prisma migrations..." && \
-    npx prisma migrate deploy && \
-    echo "Migrations complete, starting server..." && \
-    npm start
+# Use start script
+CMD ["./start.sh"]
