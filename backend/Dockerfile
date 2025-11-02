@@ -6,8 +6,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies (including dev dependencies for Prisma)
+RUN npm ci
 
 # Copy prisma schema
 COPY prisma ./prisma/
@@ -18,8 +18,11 @@ RUN npx prisma generate
 # Copy application code
 COPY . .
 
+# Remove dev dependencies
+RUN npm prune --production
+
 # Expose port
 EXPOSE 3001
 
-# Start the application
-CMD ["npm", "start"]
+# Run migrations and start
+CMD npx prisma migrate deploy && npm start
