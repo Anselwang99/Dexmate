@@ -350,17 +350,17 @@ export default function Groups() {
                                 {group.members.map((member) => (
                                     <div
                                         key={member.userId}
-                                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                                        className="flex items-center justify-between gap-4 p-3 bg-gray-50 rounded-lg"
                                     >
-                                        <div>
-                                            <p className="font-semibold">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-semibold truncate">
                                                 {member.user.name}
                                             </p>
-                                            <p className="text-sm text-gray-600">
+                                            <p className="text-sm text-gray-600 truncate">
                                                 {member.user.email}
                                             </p>
                                         </div>
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-3 flex-shrink-0">
                                             {isGroupAdmin(group) &&
                                             member.userId !== user?.id ? (
                                                 <select
@@ -383,7 +383,7 @@ export default function Groups() {
                                                 </select>
                                             ) : (
                                                 <span
-                                                    className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                                                    className={`px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap ${
                                                         member.role === "ADMIN"
                                                             ? "bg-purple-100 text-purple-800"
                                                             : "bg-blue-100 text-blue-800"
@@ -401,7 +401,7 @@ export default function Groups() {
                                                                 member.userId
                                                             )
                                                         }
-                                                        className="text-red-600 hover:text-red-800 font-semibold text-sm"
+                                                        className="text-red-600 hover:text-red-800 font-semibold text-sm whitespace-nowrap"
                                                     >
                                                         Remove
                                                     </button>
