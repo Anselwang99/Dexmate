@@ -1,0 +1,90 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String            @id @default(uuid())
+  email         String            @unique
+  password      String
+  name          String
+  createdAt     DateTime          @default(now())
+  groupMembers  GroupMember[]
+  permissions   RobotPermission[]
+  settings      RobotSetting[]
+}
+
+model Group {
+  id        String        @id @default(uuid())
+  name      String
+  createdAt DateTime      @default(now())
+  members   GroupMember[]
+}
+
+model GroupMember {
+  userId    String
+  groupId   String
+  role      Role     @default(MEMBER)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group     Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, groupId])
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+model Robot {
+  id           String            @id @default(uuid())
+  serialNumber String            @unique
+  name         String
+  ownerType    OwnerType
+  ownerId      String
+  permissions  RobotPermission[]
+  settings     RobotSetting[]
+  createdAt    DateTime          @default(now())
+}
+
+enum OwnerType {
+  USER
+  GROUP
+}
+
+model RobotPermission {
+  userId         String
+  robotId        String
+  permissionType PermissionType
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  robot          Robot          @relation(fields: [robotId], references: [id], onDelete: Cascade)
+  createdAt      DateTime       @default(now())
+
+  @@id([userId, robotId])
+}
+
+enum PermissionType {
+  USAGE
+  ADMIN
+}
+
+model RobotSetting {
+  id        String   @id @default(uuid())
+  userId    String
+  robotId   String
+  settings  String   // JSON stored as string in SQLite
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  robot     Robot    @relation(fields: [robotId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, robotId])
+}

@@ -1,0 +1,13 @@
+# Backend .dockerignore
+node_modules
+npm-debug.log
+.env
+.env.local
+.git
+.gitignore
+README.md
+*.md
+.DS_Store
+coverage
+.vscode
+.idea

@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+    backend:
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+        ports:
+            - "3001:3001"
+        environment:
+            - NODE_ENV=production
+            - DATABASE_URL=file:./dev.db
+            - JWT_SECRET=your-secret-key-change-in-production
+        volumes:
+            - ./backend/prisma:/app/prisma
+        command: sh -c "npx prisma migrate deploy && npm start"
+        healthcheck:
+            test:
+                [
+                    "CMD",
+                    "wget",
+                    "--quiet",
+                    "--tries=1",
+                    "--spider",
+                    "http://localhost:3001/api/auth/me",
+                ]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+
+    frontend:
+        build:
+            context: ./frontend
+            dockerfile: Dockerfile
+        ports:
+            - "80:80"
+        depends_on:
+            - backend
+        environment:
+            - VITE_API_URL=http://localhost:3001/api
+        healthcheck:
+            test:
+                [
+                    "CMD",
+                    "wget",
+                    "--quiet",
+                    "--tries=1",
+                    "--spider",
+                    "http://localhost:80",
+                ]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+
+volumes:
+    db-data:
