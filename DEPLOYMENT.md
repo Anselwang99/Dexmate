@@ -57,10 +57,19 @@ This guide will help you deploy the Dexmate robot management system to Railway.
     - Note: Backend URL needed for frontend `VITE_API_URL`
 
 5. **Database Persistence (Important!)**
+
     - Go to backend service → "Volumes"
     - Click "New Volume"
     - Mount path: `/app` (this persists the SQLite database)
     - Click "Add Volume"
+    - **Important**: After adding volume, redeploy the service for changes to take effect
+
+6. **Auto-Seed Demo Data**
+    - The backend will automatically seed demo accounts on first startup if database is empty
+    - Demo accounts:
+        - Admin: `admin@demo.com` / `admin123`
+        - User: `user@demo.com` / `user123`
+    - Check deployment logs to verify seed completed successfully
 
 ### Option 2: Deploy via Railway CLI
 
@@ -109,25 +118,30 @@ railway variables set DATABASE_URL=file:./dev.db
 
 ## Post-Deployment Steps
 
-1. **Run Database Migrations**
+1. **Verify Volume is Mounted**
+
+    - Go to backend service → "Volumes"
+    - Ensure volume is mounted at `/app`
+    - If not, add volume and redeploy
+
+2. **Run Database Migrations**
 
     - Go to backend service → "Deployments"
     - Click on latest deployment → "View Logs"
     - Verify migration ran successfully (Prisma migrate deploy)
 
-2. **Seed the Database (Optional)**
+3. **Verify Auto-Seed**
 
-    - You can create an initial admin user via the registration endpoint
-    - Or run seed script via Railway CLI:
-        ```bash
-        railway run npm run seed
-        ```
+    - Check deployment logs for "🎉 Initial seed completed!" message
+    - If seed didn't run, database may not be empty
+    - To manually seed: `railway run npm run seed` (requires Railway CLI)
 
-3. **Test the Deployment**
+4. **Test the Deployment**
     - Visit your frontend URL
-    - Try registering a new user
-    - Create a robot
-    - Test all functionality
+    - Login with demo accounts:
+        - Admin: `admin@demo.com` / `admin123`
+        - User: `user@demo.com` / `user123`
+    - Verify robots and groups appear in dashboard
 
 ## Custom Domain (Optional)
 
@@ -157,8 +171,26 @@ railway variables set DATABASE_URL=file:./dev.db
 
 ### Database resets on deployment
 
--   Add a Volume to backend service mounted at `/app`
+-   **Problem**: SQLite database loses data after redeployment
+-   **Solution**: Add a Volume to backend service mounted at `/app`
+-   **Steps**:
+    1. Go to backend service → "Volumes"
+    2. Click "New Volume"
+    3. Mount path: `/app`
+    4. Redeploy the service
 -   This persists the SQLite database between deployments
+
+### Demo data not showing after seed
+
+-   **Problem**: Ran `railway run npm run seed` but robots/groups don't appear
+-   **Solution**:
+    1. Ensure volume is mounted at `/app` (see above)
+    2. Redeploy the backend service
+    3. Check logs for "🎉 Initial seed completed!" message
+    4. If seed ran but data still missing, check you're logged in as demo accounts:
+        - `admin@demo.com` / `admin123`
+        - `user@demo.com` / `user123`
+    5. If logged in as different account, those accounts won't see seeded data
 
 ### CORS errors
 
