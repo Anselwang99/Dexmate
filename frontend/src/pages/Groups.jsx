@@ -372,7 +372,7 @@ export default function Groups() {
                                                             e.target.value
                                                         )
                                                     }
-                                                    className="px-3 py-1 border border-gray-300 rounded-lg text-sm"
+                                                    className="pl-3 pr-8 py-1 border border-gray-300 rounded-lg text-sm"
                                                 >
                                                     <option value="MEMBER">
                                                         Member
