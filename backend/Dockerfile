@@ -21,6 +21,9 @@ COPY . .
 # Remove dev dependencies
 RUN npm prune --production
 
+# Create data directory for database
+RUN mkdir -p /app/data
+
 # Expose port
 EXPOSE 3001
 
